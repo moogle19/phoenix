@@ -34,8 +34,8 @@ defmodule Phoenix.Endpoint.SupervisorTest do
 
   defmodule HTTPEnvVarEndpoint do
     def config(:https), do: false
-    def config(:http), do: [port: {:system,"PHOENIX_PORT"}]
-    def config(:url), do: [host: {:system,"PHOENIX_HOST"}]
+    def config(:http), do: [port: {:system, "PHOENIX_PORT"}]
+    def config(:url), do: [host: {:system, "PHOENIX_HOST"}]
     def config(:otp_app), do: :phoenix
   end
 

@@ -286,7 +286,7 @@ defmodule Phoenix.ChannelTest do
     }
 
     with {:ok, state} <- handler.connect(map),
-         {:ok, {_, socket}} = handler.init(state),
+         {:ok, {_, socket}} <- handler.init(state),
          do: {:ok, socket}
   end
 

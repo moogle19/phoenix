@@ -6,8 +6,8 @@ const plugin = require("tailwindcss/plugin")
 module.exports = {
   content: [
     "./js/**/*.js",
-    "../lib/*_web.ex",
-    "../lib/*_web/**/*.*ex"
+    "../lib/<%= @lib_web_name %>.ex",
+    "../lib/<%= @lib_web_name %>/**/*.*ex"
   ],
   theme: {
     extend: {

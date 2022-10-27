@@ -6,6 +6,7 @@ import {
 
 import Push from "./push"
 import Timer from "./timer"
+import Socket from "./socket"
 
 /**
  *
@@ -14,6 +15,19 @@ import Timer from "./timer"
  * @param {Socket} socket
  */
 export default class Channel {
+  state: string;
+  topic: string;
+  params: any;
+  bindings: Array<any>;
+  bindingRef: number;
+  timeout: number;
+  joinedOnce: boolean;
+  socket: Socket;
+  joinPush: Push;
+  pushBuffer: Array<any>;
+  stateChangeRefs: Array<any>;
+  rejoinTimer: Timer;
+  
   constructor(topic, params, socket){
     this.state = CHANNEL_STATES.closed
     this.topic = topic
@@ -144,7 +158,7 @@ export default class Channel {
    * @param {string} event
    * @param {integer} ref
    */
-  off(event, ref){
+  off(event: string, ref?: any){
     this.bindings = this.bindings.filter((bind) => {
       return !(bind.event === event && (typeof ref === "undefined" || ref === bind.ref))
     })
@@ -171,7 +185,7 @@ export default class Channel {
    * @param {number} [timeout]
    * @returns {Push}
    */
-  push(event, payload, timeout = this.timeout){
+  push(event: string, payload: Object, timeout: number = this.timeout){
     payload = payload || {}
     if(!this.joinedOnce){
       throw new Error(`tried to push '${event}' to '${this.topic}' before joining. Use channel.join() before pushing events`)
@@ -203,7 +217,7 @@ export default class Channel {
    * @param {integer} timeout
    * @returns {Push}
    */
-  leave(timeout = this.timeout){
+  leave(timeout: number = this.timeout): Push {
     this.rejoinTimer.reset()
     this.joinPush.cancelTimeout()
 
@@ -233,12 +247,12 @@ export default class Channel {
    * @param {integer} ref
    * @returns {Object}
    */
-  onMessage(_event, payload, _ref){ return payload }
+  onMessage(_event: string, payload: string, _ref: any, _joinRef?: any){ return payload }
 
   /**
    * @private
    */
-  isMember(topic, event, payload, joinRef){
+  isMember(topic: string, event, payload, joinRef){
     if(this.topic !== topic){ return false }
 
     if(joinRef && joinRef !== this.joinRef()){
@@ -267,7 +281,7 @@ export default class Channel {
   /**
    * @private
    */
-  trigger(event, payload, ref, joinRef){
+  trigger(event: string, payload: any, ref?: any, joinRef?: any){
     let handledPayload = this.onMessage(event, payload, ref, joinRef)
     if(payload && !handledPayload){ throw new Error("channel onMessage callbacks must return the payload, modified or unmodified") }
 

@@ -6,54 +6,65 @@ import {
 import Ajax from "./ajax"
 
 export default class LongPoll {
+  endPoint: string | null;
+  token: string | null;
+  skipHeartbeat: boolean;
+  reqs: Set<any>;
+  onopen: (any) => void;
+  onerror: (string) => void;
+  onmessage: (msg?: any) => void;
+  onclose: (any) => void;
+  pollEndpoint: string;
+  timeout: number;
+  readyState: number;
 
-  constructor(endPoint){
+  constructor(endPoint: string) {
     this.endPoint = null
     this.token = null
     this.skipHeartbeat = true
     this.reqs = new Set()
-    this.onopen = function (){ } // noop
-    this.onerror = function (){ } // noop
-    this.onmessage = function (){ } // noop
-    this.onclose = function (){ } // noop
+    this.onopen = function () { } // noop
+    this.onerror = function () { } // noop
+    this.onmessage = function () { } // noop
+    this.onclose = function () { } // noop
     this.pollEndpoint = this.normalizeEndpoint(endPoint)
     this.readyState = SOCKET_STATES.connecting
     this.poll()
   }
 
-  normalizeEndpoint(endPoint){
+  normalizeEndpoint(endPoint: string): string {
     return (endPoint
       .replace("ws://", "http://")
       .replace("wss://", "https://")
       .replace(new RegExp("(.*)\/" + TRANSPORTS.websocket), "$1/" + TRANSPORTS.longpoll))
   }
 
-  endpointURL(){
-    return Ajax.appendParams(this.pollEndpoint, {token: this.token})
+  endpointURL() {
+    return Ajax.appendParams(this.pollEndpoint, { token: this.token })
   }
 
-  closeAndRetry(code, reason, wasClean){
+  closeAndRetry(code, reason, wasClean) {
     this.close(code, reason, wasClean)
     this.readyState = SOCKET_STATES.connecting
   }
 
-  ontimeout(){
+  ontimeout() {
     this.onerror("timeout")
     this.closeAndRetry(1005, "timeout", false)
   }
 
-  isActive(){ return this.readyState === SOCKET_STATES.open || this.readyState === SOCKET_STATES.connecting }
+  isActive() { return this.readyState === SOCKET_STATES.open || this.readyState === SOCKET_STATES.connecting }
 
-  poll(){
+  poll() {
     this.ajax("GET", null, () => this.ontimeout(), resp => {
-      if(resp){
-        var {status, token, messages} = resp
+      if (resp) {
+        var { status, token, messages } = resp
         this.token = token
       } else {
         status = 0
       }
 
-      switch(status){
+      switch (status) {
         case 200:
           messages.forEach(msg => {
             // Tasks are what things like event handlers, setTimeout callbacks,
@@ -74,7 +85,7 @@ export default class LongPoll {
             //
             // In order to emulate this behaviour, we need to make sure each
             // onmessage handler is run within its own macrotask.
-            setTimeout(() => this.onmessage({data: msg}), 0)
+            setTimeout(() => this.onmessage({ data: msg }), 0)
           })
           this.poll()
           break
@@ -100,27 +111,27 @@ export default class LongPoll {
     })
   }
 
-  send(body){
+  send(body) {
     this.ajax("POST", body, () => this.onerror("timeout"), resp => {
-      if(!resp || resp.status !== 200){
+      if (!resp || resp.status !== 200) {
         this.onerror(resp && resp.status)
         this.closeAndRetry(1011, "internal server error", false)
       }
     })
   }
 
-  close(code, reason, wasClean){
-    for(let req of this.reqs){ req.abort() }
+  close(code?: number, reason?: string, wasClean?: boolean) {
+    for (let req of this.reqs) { req.abort() }
     this.readyState = SOCKET_STATES.closed
-    let opts = Object.assign({code: 1000, reason: undefined, wasClean: true}, {code, reason, wasClean})
-    if(typeof(CloseEvent) !== "undefined"){
+    let opts = Object.assign({ code: 1000, reason: undefined, wasClean: true }, { code, reason, wasClean })
+    if (typeof (CloseEvent) !== "undefined") {
       this.onclose(new CloseEvent("close", opts))
     } else {
       this.onclose(opts)
     }
   }
 
-  ajax(method, body, onCallerTimeout, callback){
+  ajax(method: string, body: any, onCallerTimeout: () => void, callback: (any) => void) {
     let req
     let ontimeout = () => {
       this.reqs.delete(req)
@@ -128,7 +139,7 @@ export default class LongPoll {
     }
     req = Ajax.request(method, this.endpointURL(), "application/json", body, this.timeout, ontimeout, resp => {
       this.reqs.delete(req)
-      if(this.isActive()){ callback(resp) }
+      if (this.isActive()) { callback(resp) }
     })
     this.reqs.add(req)
   }

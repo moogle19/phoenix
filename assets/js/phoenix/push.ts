@@ -1,3 +1,4 @@
+import Channel from "./channel";
 /**
  * Initializes the Push
  * @param {Channel} channel - The Channel
@@ -6,6 +7,17 @@
  * @param {number} timeout - The push timeout in milliseconds
  */
 export default class Push {
+  channel: Channel;
+  event: string;
+  payload: any;
+  receivedResp: any;
+  timeout: number;
+  timeoutTimer: any;
+  recHooks: Array<any>;
+  sent: boolean;
+  ref: any;
+  refEvent: any;
+
   constructor(channel, event, payload, timeout){
     this.channel = channel
     this.event = event

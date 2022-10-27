@@ -16,10 +16,15 @@
  * @param {Function} timerCalc
  */
 export default class Timer {
+  callback: () => void;
+  timer: number | undefined;
+  timerCalc: (tries: number) => number;
+  tries: number;
+  
   constructor(callback, timerCalc){
     this.callback = callback
     this.timerCalc = timerCalc
-    this.timer = null
+    this.timer = undefined
     this.tries = 0
   }
 

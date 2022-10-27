@@ -17,7 +17,7 @@ var Phoenix = (() => {
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-  // js/phoenix/index.js
+  // js/phoenix/index.ts
   var phoenix_exports = {};
   __export(phoenix_exports, {
     Channel: () => Channel,
@@ -27,7 +27,7 @@ var Phoenix = (() => {
     Socket: () => Socket
   });
 
-  // js/phoenix/utils.js
+  // js/phoenix/utils.ts
   var closure = (value) => {
     if (typeof value === "function") {
       return value;
@@ -39,7 +39,7 @@ var Phoenix = (() => {
     }
   };
 
-  // js/phoenix/constants.js
+  // js/phoenix/constants.ts
   var globalSelf = typeof self !== "undefined" ? self : null;
   var phxWindow = typeof window !== "undefined" ? window : null;
   var global = globalSelf || phxWindow || global;
@@ -69,7 +69,7 @@ var Phoenix = (() => {
     complete: 4
   };
 
-  // js/phoenix/push.js
+  // js/phoenix/push.ts
   var Push = class {
     constructor(channel, event, payload, timeout) {
       this.channel = channel;
@@ -153,12 +153,12 @@ var Phoenix = (() => {
     }
   };
 
-  // js/phoenix/timer.js
+  // js/phoenix/timer.ts
   var Timer = class {
     constructor(callback, timerCalc) {
       this.callback = callback;
       this.timerCalc = timerCalc;
-      this.timer = null;
+      this.timer = void 0;
       this.tries = 0;
     }
     reset() {
@@ -174,7 +174,7 @@ var Phoenix = (() => {
     }
   };
 
-  // js/phoenix/channel.js
+  // js/phoenix/channel.ts
   var Channel = class {
     constructor(topic, params, socket) {
       this.state = CHANNEL_STATES.closed;
@@ -307,7 +307,7 @@ var Phoenix = (() => {
       }
       return leavePush;
     }
-    onMessage(_event, payload, _ref) {
+    onMessage(_event, payload, _ref, _joinRef) {
       return payload;
     }
     isMember(topic, event, payload, joinRef) {
@@ -364,7 +364,7 @@ var Phoenix = (() => {
     }
   };
 
-  // js/phoenix/ajax.js
+  // js/phoenix/ajax.ts
   var Ajax = class {
     static request(method, endPoint, accept, body, timeout, ontimeout, callback) {
       if (global.XDomainRequest) {
@@ -443,7 +443,7 @@ var Phoenix = (() => {
     }
   };
 
-  // js/phoenix/longpoll.js
+  // js/phoenix/longpoll.ts
   var LongPoll = class {
     constructor(endPoint) {
       this.endPoint = null;
@@ -552,7 +552,7 @@ var Phoenix = (() => {
     }
   };
 
-  // js/phoenix/presence.js
+  // js/phoenix/presence.ts
   var Presence = class {
     constructor(channel, opts = {}) {
       let events = opts.events || { state: "presence_state", diff: "presence_diff" };
@@ -687,7 +687,7 @@ var Phoenix = (() => {
     }
   };
 
-  // js/phoenix/serializer.js
+  // js/phoenix/serializer.ts
   var serializer_default = {
     HEADER_LENGTH: 1,
     META_LENGTH: 4,
@@ -786,7 +786,7 @@ var Phoenix = (() => {
     }
   };
 
-  // js/phoenix/socket.js
+  // js/phoenix/socket.ts
   var Socket = class {
     constructor(endPoint, opts = {}) {
       this.stateChangeCallbacks = { open: [], close: [], error: [], message: [] };

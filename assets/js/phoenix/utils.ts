@@ -1,5 +1,5 @@
 // wraps value in closure or returns closure
-export let closure = (value) => {
+export let closure = (value : any) => {
   if(typeof value === "function"){
     return value
   } else {

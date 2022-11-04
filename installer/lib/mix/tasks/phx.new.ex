@@ -31,6 +31,14 @@ defmodule Mix.Tasks.Phx.New do
       Please check the driver docs for more information
       and requirements. Defaults to "postgres".
 
+    * `--adapter` - specify the http adapter. One of:
+
+        * `cowboy` - via https://github.com/elixir-plug/plug_cowboy
+        * `bandit` - via https://github.com/mtrudel/bandit
+
+      Please check the adapter docs for more information
+      and requirements. Defaults to "cowboy".
+
     * `--no-assets` - do not generate the assets folder.
       When choosing this option, you will need to manually
       handle JavaScript/CSS if building HTML apps
@@ -105,12 +113,26 @@ defmodule Mix.Tasks.Phx.New do
   @version Mix.Project.config()[:version]
   @shortdoc "Creates a new Phoenix v#{@version} application"
 
-  @switches [dev: :boolean, assets: :boolean, ecto: :boolean,
-             app: :string, module: :string, web_module: :string,
-             database: :string, binary_id: :boolean, html: :boolean,
-             gettext: :boolean, umbrella: :boolean, verbose: :boolean,
-             live: :boolean, dashboard: :boolean, install: :boolean,
-             prefix: :string, mailer: :boolean]
+  @switches [
+    dev: :boolean,
+    assets: :boolean,
+    ecto: :boolean,
+    app: :string,
+    module: :string,
+    web_module: :string,
+    database: :string,
+    adapter: :string,
+    binary_id: :boolean,
+    html: :boolean,
+    gettext: :boolean,
+    umbrella: :boolean,
+    verbose: :boolean,
+    live: :boolean,
+    dashboard: :boolean,
+    install: :boolean,
+    prefix: :string,
+    mailer: :boolean
+  ]
 
   @impl true
   def run([version]) when version in ~w(-v --version) do
@@ -119,6 +141,7 @@ defmodule Mix.Tasks.Phx.New do
 
   def run(argv) do
     elixir_version_check!()
+
     case parse_opts(argv) do
       {_opts, []} ->
         Mix.Tasks.Help.run(["phx.new"])
@@ -132,6 +155,7 @@ defmodule Mix.Tasks.Phx.New do
   @doc false
   def run(argv, generator, path) do
     elixir_version_check!()
+
     case parse_opts(argv) do
       {_opts, []} -> Mix.Tasks.Help.run(["phx.new"])
       {opts, [base_path | _]} -> generate(base_path, generator, path, opts)
@@ -194,16 +218,19 @@ defmodule Mix.Tasks.Phx.New do
       print_mix_info(generator)
     end)
   end
+
   defp maybe_cd(path, func), do: path && File.cd!(path, func)
 
   defp parse_opts(argv) do
     case OptionParser.parse(argv, strict: @switches) do
       {opts, argv, []} ->
         {opts, argv}
+
       {_opts, _argv, [switch | _]} ->
-        Mix.raise "Invalid option: " <> switch_to_string(switch)
+        Mix.raise("Invalid option: " <> switch_to_string(switch))
     end
   end
+
   defp switch_to_string({name, nil}), do: name
   defp switch_to_string({name, val}), do: name <> "=" <> val
 
@@ -221,32 +248,34 @@ defmodule Mix.Tasks.Phx.New do
   end
 
   defp print_missing_steps(steps) do
-    Mix.shell().info """
+    Mix.shell().info("""
 
     We are almost there! The following steps are missing:
 
         #{Enum.join(steps, "\n    ")}
-    """
+    """)
   end
 
   defp print_ecto_info(Web), do: :ok
+
   defp print_ecto_info(_gen) do
-    Mix.shell().info """
+    Mix.shell().info("""
     Then configure your database in config/dev.exs and run:
 
         $ mix ecto.create
-    """
+    """)
   end
 
   defp print_mix_info(Ecto) do
-    Mix.shell().info """
+    Mix.shell().info("""
     You can run your app inside IEx (Interactive Elixir) as:
 
         $ iex -S mix
-    """
+    """)
   end
+
   defp print_mix_info(_gen) do
-    Mix.shell().info """
+    Mix.shell().info("""
     Start your Phoenix app with:
 
         $ mix phx.server
@@ -254,7 +283,7 @@ defmodule Mix.Tasks.Phx.New do
     You can also run your app inside IEx (Interactive Elixir) as:
 
         $ iex -S mix phx.server
-    """
+    """)
   end
 
   defp relative_app_path(path) do
@@ -270,18 +299,22 @@ defmodule Mix.Tasks.Phx.New do
     cond do
       should_run? && can_run? ->
         cmd(project, cmd)
+
       should_run? ->
         ["$ #{cmd}"]
+
       true ->
         []
     end
   end
 
   defp cmd(%Project{} = project, cmd) do
-    Mix.shell().info [:green, "* running ", :reset, cmd]
+    Mix.shell().info([:green, "* running ", :reset, cmd])
+
     case Mix.shell().cmd(cmd, cmd_opts(project)) do
       0 ->
         []
+
       _ ->
         ["$ #{cmd}"]
     end
@@ -300,19 +333,23 @@ defmodule Mix.Tasks.Phx.New do
       extra =
         if !from_app_flag do
           ". The application name is inferred from the path, if you'd like to " <>
-          "explicitly name the application then use the `--app APP` option."
+            "explicitly name the application then use the `--app APP` option."
         else
           ""
         end
 
-      Mix.raise "Application name must start with a letter and have only lowercase " <>
-                "letters, numbers and underscore, got: #{inspect name}" <> extra
+      Mix.raise(
+        "Application name must start with a letter and have only lowercase " <>
+          "letters, numbers and underscore, got: #{inspect(name)}" <> extra
+      )
     end
   end
 
   defp check_module_name_validity!(name) do
     unless inspect(name) =~ Regex.recompile!(~r/^[A-Z]\w*(\.[A-Z]\w*)*$/) do
-      Mix.raise "Module name must be a valid Elixir alias (for example: Foo.Bar), got: #{inspect name}"
+      Mix.raise(
+        "Module name must be a valid Elixir alias (for example: Foo.Bar), got: #{inspect(name)}"
+      )
     end
   end
 
@@ -321,25 +358,31 @@ defmodule Mix.Tasks.Phx.New do
     |> Module.concat()
     |> Module.split()
     |> Enum.reduce([], fn name, acc ->
-        mod = Module.concat([Elixir, name | acc])
-        if Code.ensure_loaded?(mod) do
-          Mix.raise "Module name #{inspect mod} is already taken, please choose another name"
-        else
-          [name | acc]
-        end
+      mod = Module.concat([Elixir, name | acc])
+
+      if Code.ensure_loaded?(mod) do
+        Mix.raise("Module name #{inspect(mod)} is already taken, please choose another name")
+      else
+        [name | acc]
+      end
     end)
   end
 
   defp check_directory_existence!(path) do
-    if File.dir?(path) and not Mix.shell().yes?("The directory #{path} already exists. Are you sure you want to continue?") do
-      Mix.raise "Please select another directory for installation."
+    if File.dir?(path) and
+         not Mix.shell().yes?(
+           "The directory #{path} already exists. Are you sure you want to continue?"
+         ) do
+      Mix.raise("Please select another directory for installation.")
     end
   end
 
   defp elixir_version_check! do
     unless Version.match?(System.version(), "~> 1.14") do
-      Mix.raise "Phoenix v#{@version} requires at least Elixir v1.14\n " <>
-                "You have #{System.version()}. Please update accordingly"
+      Mix.raise()
+
+      "Phoenix v#{@version} requires at least Elixir v1.14\n " <>
+        "You have #{System.version()}. Please update accordingly"
     end
   end
 end

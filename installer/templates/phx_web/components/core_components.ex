@@ -144,8 +144,6 @@ defmodule <%= @web_namespace %>.CoreComponents do
   def flash_group(assigns) do
     ~H"""
     <div class="fixed top-2 right-2 flex flex-col gap-2">
-      <.flash id="info-flash" kind={:info} title="Success!" flash={@flash} />
-      <.flash id="error-flash" kind={:error} title="Error!" flash={@flash} />
       <.flash
         id="client-error"
         kind={:error}
@@ -168,6 +166,8 @@ defmodule <%= @web_namespace %>.CoreComponents do
         Hang in there while we get back on track
         <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
       </.flash>
+      <.flash id="error-flash" kind={:error} title="Error!" flash={@flash} />
+      <.flash id="info-flash" kind={:info} title="Success!" flash={@flash} />
     </div>
     """
   end
